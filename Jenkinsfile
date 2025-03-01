@@ -32,6 +32,8 @@ pipeline {
         stage('Generate Certificates') {
             steps{
                 sh '''
+                    mkdir -p ./cert_mgmt/certificates
+                    mkdir -p ./cert_mgmt/keystores
                     generate_certificate() {
                         local alias=$1
                         local dname="CN=${alias}, OU=Devops, O=wiz4host, L=Varanasi, ST=UP, C=IN"
