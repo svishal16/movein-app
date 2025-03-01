@@ -1,0 +1,149 @@
+pipeline {
+    agent any
+
+    environment {
+        registryCredential = 'ecr:eu-north-1:awscreds'
+        appRegistry = "296062569588.dkr.ecr.eu-north-1.amazonaws.com/vprofileappimg"
+        vprofileRegistry = "https://296062569588.dkr.ecr.eu-north-1.amazonaws.com"
+        cluster = "vprofile"
+        service = "vprofileappsvc"
+    }
+    
+    stages {
+   
+        stage('Fetch code') {
+            steps {
+               git branch: 'main', url: 'https://github.com/svishal16/movein-app.git'
+            }
+
+        }
+
+        stage('Check Certificate Expiry') {
+            steps {
+                script {
+                    echo "Checking certificate expiration..."
+                    sh '''
+                        # Check if certificates in the JKS are expiring within 30 days
+                        KEYSTORE_PASS=${JKS_PASSWORD}
+                        CERT_EXPIRY_THRESHOLD=30
+                        expiry_dates=$(keytool -list -v -keystore ${JKS_FILE_PATH} -storepass ${KEYSTORE_PASS} | grep 'Entry type' | grep 'Cert[0-9]' | awk '{print $3}')
+                        
+                        for expiry in $expiry_dates; do
+                            expiry_timestamp=$(date -d $expiry +%s)
+                            current_timestamp=$(date +%s)
+                            days_remaining=$(( (expiry_timestamp - current_timestamp) / 86400 ))
+                            
+                            if (( days_remaining < CERT_EXPIRY_THRESHOLD )); then
+                                echo "Certificate is expiring in $days_remaining days. It needs to be renewed."
+                                exit 1
+                            fi
+                        done
+                    '''
+                }
+            }
+        }
+
+        stage('Renew Certificates') {
+            steps {
+                script {
+                    echo "Renewing certificates..."
+                    sh '''
+                        # Here, include the steps for renewing the certificate (e.g., download new certs, etc.)
+                        # Assuming new certificates are available in a specified directory
+
+                        # Import new certificate into the JKS
+                        keytool -importcert -file ${CERT_DIR}/new-certificate.pem -keystore ${JKS_FILE_PATH} -storepass ${JKS_PASSWORD} -alias "new_cert"
+                    '''
+                }
+            }
+        }
+
+        stage('Update JKS') {
+            steps {
+                script {
+                    echo "Updating Java KeyStore (JKS)..."
+                    // The above step has already handled the update in the previous stage.
+                    // If additional steps are needed to modify the JKS, they can be added here.
+                }
+            }
+        }
+
+        stage("Sonar Code Analysis") {
+            environment {
+                scannerHome = tool 'sonar6.2'
+            }
+            steps {
+              withSonarQubeEnv('sonarserver') {
+                sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
+                   -Dsonar.projectName=vprofile \
+                   -Dsonar.projectVersion=1.0 \
+                   -Dsonar.sources=src/ \
+                   -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
+                   -Dsonar.junit.reportsPath=target/surefire-reports/ \
+                   -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+                   -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
+                }
+            }
+        }
+
+        stage("Quality Gate") {
+            steps {
+              timeout(time: 1, unit: 'HOURS') {
+                waitForQualityGate abortPipeline: true
+              }
+            }
+        }
+
+        stage('Build App Image') {
+            steps {
+              script {
+                dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", "./Docker-files/app/multistage/")
+              }
+            }
+    
+        }
+
+        stage('Upload App Image') {
+          steps{
+            script {
+              docker.withRegistry( vprofileRegistry, registryCredential ) {
+                dockerImage.push("$BUILD_NUMBER")
+                dockerImage.push('latest')
+              }
+            }
+          }
+        }
+
+        stage('Commit Code Changes') {
+            steps {
+                script {
+                    echo "Committing changes to GitHub repository..."
+                    sh '''
+                        # Make sure any code changes are committed, especially for keystore updates
+                        git config user.email "you@example.com"
+                        git config user.name "Jenkins CI"
+                        git add ${JKS_FILE_PATH}
+                        git commit -m "Updated JKS with renewed certificate"
+                        git push origin ${GITHUB_BRANCH}
+                    '''
+                }
+            }
+        }
+
+        stage('Remove Container Images'){
+            steps{
+                sh 'docker rmi -f $(docker images -a -q)'
+            }
+        }
+
+
+        stage('Deploy to ecs') {
+          steps {
+            withAWS(credentials: 'awscreds', region: 'eu-north-1') {
+            sh 'aws ecs update-service --cluster ${cluster} --service ${service} --force-new-deployment'
+            }
+          }
+        }
+
+    }
+}

@@ -1,0 +1,172 @@
+pipeline {
+    agent any
+
+    environment {
+        // AWS credentials and repository settings
+        AWS_REGION = 'us-west-2'
+        ECR_REPOSITORY = 'my-ecr-repository'
+        IMAGE_NAME = 'my-container-image'
+        AWS_ECR_URI = "123456789012.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}"
+        ECS_CLUSTER = 'my-ecs-cluster'
+        ECS_SERVICE = 'my-ecs-service'
+        ECS_TASK_DEFINITION = 'my-task-definition'
+        
+        // GitHub repository settings
+        GITHUB_REPO = 'https://github.com/yourusername/your-repo.git'
+        GITHUB_BRANCH = 'main'
+        GITHUB_CREDENTIALS = 'github-credentials-id'
+        
+        // JKS settings
+        JKS_FILE_PATH = '/path/to/keystore.jks'
+        JKS_PASSWORD = 'yourKeystorePassword'
+        CERT_DIR = '/path/to/certificates'
+    }
+
+    stages {
+        stage('Clone GitHub Repo') {
+            steps {
+                script {
+                    echo "Cloning GitHub repository..."
+                    git credentialsId: "${GITHUB_CREDENTIALS}", url: "${GITHUB_REPO}", branch: "${GITHUB_BRANCH}"
+                }
+            }
+        }
+
+        stage('Check Certificate Expiry') {
+            steps {
+                script {
+                    echo "Checking certificate expiration..."
+                    sh '''
+                        # Check if certificates in the JKS are expiring within 30 days
+                        KEYSTORE_PASS=${JKS_PASSWORD}
+                        CERT_EXPIRY_THRESHOLD=30
+                        expiry_dates=$(keytool -list -v -keystore ${JKS_FILE_PATH} -storepass ${KEYSTORE_PASS} | grep 'Entry type' | grep 'Cert[0-9]' | awk '{print $3}')
+                        
+                        for expiry in $expiry_dates; do
+                            expiry_timestamp=$(date -d $expiry +%s)
+                            current_timestamp=$(date +%s)
+                            days_remaining=$(( (expiry_timestamp - current_timestamp) / 86400 ))
+                            
+                            if (( days_remaining < CERT_EXPIRY_THRESHOLD )); then
+                                echo "Certificate is expiring in $days_remaining days. It needs to be renewed."
+                                exit 1
+                            fi
+                        done
+                    '''
+                }
+            }
+        }
+
+        stage('Renew Certificates') {
+            steps {
+                script {
+                    echo "Renewing certificates..."
+                    sh '''
+                        # Here, include the steps for renewing the certificate (e.g., download new certs, etc.)
+                        # Assuming new certificates are available in a specified directory
+
+                        # Import new certificate into the JKS
+                        keytool -importcert -file ${CERT_DIR}/new-certificate.pem -keystore ${JKS_FILE_PATH} -storepass ${JKS_PASSWORD} -alias "new_cert"
+                    '''
+                }
+            }
+        }
+
+        stage('Update JKS') {
+            steps {
+                script {
+                    echo "Updating Java KeyStore (JKS)..."
+                    // The above step has already handled the update in the previous stage.
+                    // If additional steps are needed to modify the JKS, they can be added here.
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo "Building new Docker image with updated JKS..."
+                    sh '''
+                        docker build -t ${AWS_ECR_URI}:${BUILD_NUMBER} .
+                    '''
+                }
+            }
+        }
+
+        stage('Login to AWS ECR') {
+            steps {
+                script {
+                    echo "Logging into AWS ECR..."
+                    sh '''
+                        $(aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_URI})
+                    '''
+                }
+            }
+        }
+
+        stage('Push Docker Image to ECR') {
+            steps {
+                script {
+                    echo "Pushing new Docker image to AWS ECR..."
+                    sh '''
+                        docker push ${AWS_ECR_URI}:${BUILD_NUMBER}
+                    '''
+                }
+            }
+        }
+
+        stage('Commit Code Changes') {
+            steps {
+                script {
+                    echo "Committing changes to GitHub repository..."
+                    sh '''
+                        # Make sure any code changes are committed, especially for keystore updates
+                        git config user.email "you@example.com"
+                        git config user.name "Jenkins CI"
+                        git add ${JKS_FILE_PATH}
+                        git commit -m "Updated JKS with renewed certificate"
+                        git push origin ${GITHUB_BRANCH}
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to AWS ECS') {
+            steps {
+                script {
+                    echo "Deploying to AWS ECS..."
+                    sh '''
+                        # Register a new ECS task definition with the updated image
+                        ecs_task_definition=$(aws ecs register-task-definition \
+                            --family ${ECS_TASK_DEFINITION} \
+                            --container-definitions "[
+                                {
+                                    \\"name\\": \\"${IMAGE_NAME}\\",
+                                    \\"image\\": \\"${AWS_ECR_URI}:${BUILD_NUMBER}\\",
+                                    \\"memory\\": 512,
+                                    \\"cpu\\": 256,
+                                    \\"essential\\": true
+                                }
+                            ]" \
+                            --query 'taskDefinition.taskDefinitionArn' --output text)
+
+                        # Update the ECS service to use the new task definition
+                        aws ecs update-service \
+                            --cluster ${ECS_CLUSTER} \
+                            --service ${ECS_SERVICE} \
+                            --task-definition ${ecs_task_definition}
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline completed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Please check the logs for details."
+        }
+    }
+}
