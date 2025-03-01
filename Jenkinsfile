@@ -19,15 +19,15 @@ pipeline {
 
         }
 
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    // Install dependencies (e.g., OpenJDK for handling JKS, AWS CLI for certificate renewal)
-                    sh 'sudo apt-get update'
-                    sh 'sudo apt-get install -y openjdk-11-jdk awscli'
-                }
-            }
-        }
+        // stage('Install Dependencies') {
+        //     steps {
+        //         script {
+        //             // Install dependencies (e.g., OpenJDK for handling JKS, AWS CLI for certificate renewal)
+        //             sh 'sudo apt-get update'
+        //             sh 'sudo apt-get install -y openjdk-11-jdk awscli'
+        //         }
+        //     }
+        // }
 
         stage('Generate Certificates') {
             steps{
