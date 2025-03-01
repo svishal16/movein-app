@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        KEYSTORE_DIR=./cert_mgmt/keystores
-        CERT_DIR=./cert_mgmt/certificates
+        KEYSTORE_DIR="./cert_mgmt/keystores"
+        CERT_DIR="./cert_mgmt/certificates"
         KEYSTORE="myKeystore.jks"
         STOREPASS="admin123"
         KEYPASS="admin123"
