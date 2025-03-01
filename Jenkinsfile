@@ -32,12 +32,14 @@ pipeline {
         stage('Generate Certificates') {
             steps{
                 sh '''
-                    local alias=$1
-                    local dname="CN=${alias}, OU=Devops, O=wiz4host, L=Varanasi, ST=UP, C=IN"
-                    echo "Generating Root Certificate"
-	                keytool -genkeypair -v -keystore ./cert_mgmt/keystores/myKeystore.jks -storepass $STOREPASS -keypass $KEYPASS -dname "$dname" -keyalg RSA -keysize 2048 -alias root
-	                echo "Generating certificate: $alias"
-                    keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keypass $KEYPASS -dname "$dname" -keyalg RSA -keysize 2048 -alias $alias
+                    generate_certificate() {
+                        local alias=$1
+                        local dname="CN=${alias}, OU=Devops, O=wiz4host, L=Varanasi, ST=UP, C=IN"
+                        echo "Generating Root Certificate"
+	                    keytool -genkeypair -v -keystore ./cert_mgmt/keystores/myKeystore.jks -storepass $STOREPASS -keypass $KEYPASS -dname "$dname" -keyalg RSA -keysize 2048 -alias root
+	                    echo "Generating certificate: $alias"
+                        keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keypass $KEYPASS -dname "$dname" -keyalg RSA -keysize 2048 -alias $alias
+                    }
                     
                     for i in {1..24}; do
                         alias="$ALIAS_PREFIX_$i"
