@@ -31,6 +31,7 @@ pipeline {
 
         stage('Generate Certificates') {
             steps{
+                sh 'chmod +x ./cert_mgmt/gen_cert.sh'
                 sh './cert_mgmt/gen_cert.sh'
             }
         }
