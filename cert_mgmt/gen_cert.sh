@@ -11,13 +11,13 @@ mkdir -p ./cert_mgmt/certificates
 mkdir -p ./cert_mgmt/keystores
 
 echo "Generating Root Certificate"
-keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keypass $KEYPASS -dname "CN=$A>
+keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keypass $KEYPASS -dname "CN=$ALIAS_PREFIX, OU=Devops, O=wiz4host, L=Varanasi, ST=UP, C=IN" -keyalg RSA -keysize 2048 -alias root
 
 function generate_certificate() {
     local alias=$1
     local dname="CN=${alias}, OU=Devops, O=wiz4host, L=Varanasi, ST=UP, C=IN"
-        echo "Generating certificate: $alias"
-    keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keypass $KEYPASS -dname "$>
+    echo "Generating certificate: $alias"
+    keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keypass $KEYPASS -dname "$dname" -keyalg RSA -keysize 2048 -alias $alias
 }
 
 for i in {1..24}
