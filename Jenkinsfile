@@ -32,6 +32,7 @@ pipeline {
         stage('Generate Certificates') {
             steps{
                 sh '''
+                    #!/bin/bash
                     mkdir -p ./cert_mgmt/certificates
                     mkdir -p ./cert_mgmt/keystores
                     echo "Generating Root Certificate"
