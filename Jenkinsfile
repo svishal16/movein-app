@@ -44,7 +44,7 @@ pipeline {
                     }
                     
                     for i in {1..24}; do
-                        alias="$ALIAS_PREFIX_$i"
+                        alias="${ALIAS_PREFIX}_$i"
                         generate_certificate $alias
                     done
                 '''
