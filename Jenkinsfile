@@ -33,6 +33,7 @@ pipeline {
             steps{
                 sh '''
                     #!/bin/bash
+                    set -x
                     mkdir -p ./cert_mgmt/certificates
                     mkdir -p ./cert_mgmt/keystores
                     echo "Generating Root Certificate"
