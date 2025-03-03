@@ -43,8 +43,7 @@ function generate_new_certificate() {
     echo "Generating a new self-signed certificate for alias: $alias..."
 
     # Generate a new key pair and self-signed certificate using keytool
-    local dname="CN=${alias}, OU=Devops, O=wiz4host, L=Varanasi, ST=UP, C=IN"
-    keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keyalg RSA -keysize $KEY_SIZE -dname $dname -alias "$alias" -noprompt
+    keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keyalg RSA -keysize $KEY_SIZE -dname "CN=${alias}, OU=Devops, O=wiz4host, L=Varanasi, ST=UP, C=IN" -alias "$alias" -noprompt
 
     # Verify that the new certificate has been generated and imported successfully
     keytool -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -list | grep "$alias"
