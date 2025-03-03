@@ -9,15 +9,19 @@ function check_certificate_expiry() {
 
     # Extract the expiration date of the certificate using keytool
     expiry_date=$(keytool -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -alias "$alias" -v | grep "Valid from" | awk -F "until:" '{print $2}')
-    
+    echo $expiry_date
+
     if [[ -z "$expiry_date" ]]; then
         echo "Error: Could not retrieve expiry date for alias $alias."
         return 1
     fi
 
     expiry_timestamp=$(date -d "$expiry_date" +%s)
-    current_timestamp=$(date +%s)
+    echo $expiry_timestamp
 
+    current_timestamp=$(date +%s)
+    echo $current_timestamp
+    
     echo "Certificate with alias $alias expires on: $expiry_date"
     echo "Current date: $(date)"
 
