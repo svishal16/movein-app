@@ -21,7 +21,7 @@ function check_certificate_expiry() {
 
     current_timestamp=$(date +%s)
     echo $current_timestamp
-    
+
     echo "Certificate with alias $alias expires on: $expiry_date"
     echo "Current date: $(date)"
 
@@ -69,7 +69,7 @@ function renew_certificate() {
 }
 
 # Main logic: Iterate through all aliases in the JKS file
-aliases=$(keytool -list -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS | grep "Alias name:" | awk '{print $3}')
+aliases=$(keytool -list -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -v | grep "Alias name:" | awk '{print $3}')
 
 mkdir -p ./cert_mgmt/new_cert
 
