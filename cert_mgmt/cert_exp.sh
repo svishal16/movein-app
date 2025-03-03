@@ -38,26 +38,44 @@ function check_certificate_expiry() {
     fi
 }
 
+function generate_new_certificate() {
+    local alias="$1"
+    echo "Generating a new self-signed certificate for alias: $alias..."
+
+    # Generate a new key pair and self-signed certificate using keytool
+    keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keyalg RSA -keysize $KEY_SIZE -dname "CN=$alias" -alias "$alias" -noprompt
+
+    # Verify that the new certificate has been generated and imported successfully
+    keytool -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -list | grep "$alias"
+
+    if [[ $? -eq 0 ]]; then
+        echo "New self-signed certificate for alias $alias generated and imported successfully."
+    else
+        echo "Failed to generate/import new certificate for alias $alias."
+        return 1
+    fi
+}
+
 # Function to renew the certificate
 function renew_certificate() {
     local alias="$1"
     echo "Renewing the certificate with alias: $alias..."
 
-    # Check if the new certificate exists
-    NEW_CERT_FILE="$NEW_CERT_FOLDER/$KEYSTORE"
+    # # Check if the new certificate exists
+    # NEW_CERT_FILE="$NEW_CERT_FOLDER/$KEYSTORE"
 
-    keytool -genkeypair -v -keystore $NEW_CERT_FILE -storepass $STOREPASS -keypass $KEYPASS -dname "$dname" -keyalg RSA -keysize 2048 -alias $alias
+    # keytool -genkeypair -v -keystore $NEW_CERT_FILE -storepass $STOREPASS -keypass $KEYPASS -dname "$dname" -keyalg RSA -keysize 2048 -alias $alias
 
-    if [[ ! -f "$NEW_CERT_FILE" ]]; then
-        echo "New certificate for alias $alias not found at $NEW_CERT_FILE"
-        return 1
-    fi
+    # if [[ ! -f "$NEW_CERT_FILE" ]]; then
+    #     echo "New certificate for alias $alias not found at $NEW_CERT_FILE"
+    #     return 1
+    # fi
 
     # Back up the old keystore before renewing
     cp $KEYSTORE_DIR/$KEYSTORE "$KEYSTORE_DIR/$KEYSTORE.bkp"
 
     # Import the new certificate into the JKS file
-    keytool -importcert -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -file "$NEW_CERT_FILE" -alias "$alias" -noprompt
+    # keytool -importcert -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -file "$NEW_CERT_FILE" -alias "$alias" -noprompt
 
     # Verify that the new certificate has been imported successfully
     keytool -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -list | grep "$alias"
@@ -81,9 +99,9 @@ for alias in $aliases
 do
     check_certificate_expiry "$alias"
     if [[ $? -ne 0 ]]; then
+        generate_new_certificate "$alias"
         renew_certificate "$alias"
     else
         echo "No renewal needed for certificate with alias $alias."
     fi
 done
-
