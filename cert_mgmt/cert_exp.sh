@@ -8,7 +8,7 @@ function check_certificate_expiry() {
     echo "Checking expiry of certificate with alias: $alias"
 
     # Extract the expiration date of the certificate using keytool
-    expiry_date=$(keytool -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -alias "$alias" -v | grep "Valid from" | awk -F "until:" '{print $2}')
+    expiry_date=$(keytool -list -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -alias "$alias" -v | grep "Valid from" | awk -F "until:" '{print $2}')
     echo $expiry_date
 
     if [[ -z "$expiry_date" ]]; then
@@ -70,6 +70,7 @@ function renew_certificate() {
 
 # Main logic: Iterate through all aliases in the JKS file
 aliases=$(keytool -list -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -v | grep "Alias name:" | awk '{print $3}')
+echo $aliases
 
 mkdir -p ./cert_mgmt/new_cert
 
