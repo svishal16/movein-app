@@ -44,7 +44,7 @@ function renew_certificate() {
     echo "Renewing the certificate with alias: $alias..."
 
     # Check if the new certificate exists
-    NEW_CERT_FILE="$NEW_CERT_FOLDER/$alias.crt"
+    NEW_CERT_FILE="$NEW_CERT_FOLDER/$KEYSTORE"
 
     keytool -genkeypair -v -keystore $NEW_CERT_FILE -storepass $STOREPASS -keypass $KEYPASS -dname "$dname" -keyalg RSA -keysize 2048 -alias $alias
 
