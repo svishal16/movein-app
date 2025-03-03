@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Function to check certificate expiry
-check_certificate_expiry() {
+function check_certificate_expiry() {
     local alias="$1"
     echo "Checking expiry of certificate with alias: $alias"
 
     # Extract the expiration date of the certificate using keytool
-    expiry_date=$(keytool -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -alias "$alias" -v | grep "Valid from" | awk -F" until " '{print $2}')
+    expiry_date=$(keytool -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -alias "$alias" -v | grep "Valid from" | awk -F "until:" '{print $2}')
     expiry_timestamp=$(date -d "$expiry_date" +%s)
     current_timestamp=$(date +%s)
 
@@ -27,7 +27,7 @@ check_certificate_expiry() {
 }
 
 # Function to renew the certificate
-renew_certificate() {
+function renew_certificate() {
     local alias="$1"
     echo "Renewing the certificate with alias: $alias..."
 
@@ -39,7 +39,7 @@ renew_certificate() {
     fi
 
     # Back up the old keystore before renewing
-    cp $KEYSTORE_DIR/$KEYSTORE "${JKS_FILE}.bak"
+    cp $KEYSTORE_DIR/$KEYSTORE "$KEYSTORE_DIR/$KEYSTORE.bkp"
 
     # Import the new certificate into the JKS file
     keytool -importcert -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -file "$NEW_CERT_FILE" -alias "$alias" -noprompt
@@ -51,13 +51,15 @@ renew_certificate() {
         echo "Certificate with alias $alias renewed successfully."
     else
         echo "Failed to renew the certificate with alias $alias. Restoring the old keystore."
-        mv "${JKS_FILE}.bak" $KEYSTORE_DIR/$KEYSTORE
+        mv "$KEYSTORE_DIR/$KEYSTORE.bkp" $KEYSTORE_DIR/$KEYSTORE
         return 1
     fi
 }
 
 # Main logic: Iterate through all aliases in the JKS file
-aliases=$(keytool -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -list | grep "Alias name:" | awk '{print $3}')
+aliases=$(keytool -list -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS | grep "Alias name:" | awk '{print $3}')
+
+mkdir -p ./cert_mgmt/new_cert
 
 for alias in $aliases
 do
