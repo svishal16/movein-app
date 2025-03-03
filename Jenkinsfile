@@ -40,7 +40,8 @@ pipeline {
 
         stage('Checking Certificate Expiry') {
             steps{
-
+                sh 'chmod +x ./cert_mgmt/cert_exp.sh'
+                sh './cert_mgmt/cert_exp.sh'
             }
         }
 
