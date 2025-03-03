@@ -4,7 +4,7 @@ pipeline {
     environment {
         KEYSTORE_DIR="./cert_mgmt/keystores"
         CERT_DIR="./cert_mgmt/certificates"
-        KEYSTORE="test13Keystore.jks"
+        KEYSTORE="test14Keystore.jks"
         STOREPASS="admin123"
         KEYPASS="admin123"
         ALIAS_PREFIX="vishal_dev"
