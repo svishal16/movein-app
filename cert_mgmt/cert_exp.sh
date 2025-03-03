@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "STARTING CERTIFICATE EXPIRY CHECK SCRIPT"
+
 # Function to check certificate expiry
 function check_certificate_expiry() {
     local alias="$1"
