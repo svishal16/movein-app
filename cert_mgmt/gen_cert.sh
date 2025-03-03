@@ -8,7 +8,7 @@ keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -
 
 function generate_certificate() {
     local alias=$1
-    local dname="CN=${alias}, OU=Devops, O=wiz4host, L=Varanasi, ST=UP, C=IN"
+    local dname="CN=$ALIAS_PREFIX, OU=Devops, O=wiz4host, L=Varanasi, ST=UP, C=IN"
     echo "Generating certificate: $alias"
     keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keypass $KEYPASS -dname "$dname" -keyalg RSA -keysize 2048 -alias $alias
 }
