@@ -8,6 +8,8 @@ pipeline {
         STOREPASS="admin123"
         KEYPASS="admin123"
         ALIAS_PREFIX="proj_cert"
+        NEW_CERT_FOLDER="path/to/new/certificates"  
+        KEYSTORE_TMP_FILE="keystore_temp.jks"
     }
 
     stages {
@@ -33,6 +35,12 @@ pipeline {
             steps{
                 sh 'chmod +x ./cert_mgmt/gen_cert.sh'
                 sh './cert_mgmt/gen_cert.sh'
+            }
+        }
+
+        stage('Checking Certificate Expiry') {
+            steps{
+
             }
         }
 

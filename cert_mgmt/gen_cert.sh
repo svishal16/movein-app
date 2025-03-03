@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# KEYSTORE_DIR="./cert_mgmt/keystores"
-# CERT_DIR="./cert_mgmt/certificates"
-# KEYSTORE="testbKeystore.jks"
-# STOREPASS="admin123"
-# KEYPASS="admin123"
-# ALIAS_PREFIX="proj_cert"
-
 mkdir -p ./cert_mgmt/certificates
 mkdir -p ./cert_mgmt/keystores
 
