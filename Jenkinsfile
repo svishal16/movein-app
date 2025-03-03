@@ -55,7 +55,7 @@ pipeline {
             steps {
                 script {
                     echo "Building new Docker image with updated JKS..."
-                    dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", .)
+                    dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", ./Dockerfile)
                 }
             }
     
