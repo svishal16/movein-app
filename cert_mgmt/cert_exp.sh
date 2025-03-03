@@ -42,6 +42,9 @@ function generate_new_certificate() {
     local alias="$1"
     echo "Generating a new self-signed certificate for alias: $alias..."
 
+    # Delete old certificate (renewal process)
+    keytool -delete -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -alias $alias
+
     # Generate a new key pair and self-signed certificate using keytool
     keytool -genkeypair -v -keystore $KEYSTORE_DIR/$KEYSTORE -storepass $STOREPASS -keypass $KEYPASS -keyalg RSA -keysize 2048 -dname "CN=$ALIAS_PREFIX, OU=Devops, O=wiz4host, L=Varanasi, ST=UP, C=IN" -alias $alias -noprompt
 
