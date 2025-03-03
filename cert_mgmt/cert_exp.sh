@@ -45,6 +45,9 @@ function renew_certificate() {
 
     # Check if the new certificate exists
     NEW_CERT_FILE="$NEW_CERT_FOLDER/$alias.crt"
+
+    keytool -genkeypair -v -keystore $NEW_CERT_FILE -storepass $STOREPASS -keypass $KEYPASS -dname "$dname" -keyalg RSA -keysize 2048 -alias $alias
+
     if [[ ! -f "$NEW_CERT_FILE" ]]; then
         echo "New certificate for alias $alias not found at $NEW_CERT_FILE"
         return 1
