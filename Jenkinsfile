@@ -4,7 +4,7 @@ pipeline {
     environment {
         KEYSTORE_DIR="./cert_mgmt/keystores"
         CERT_DIR="./cert_mgmt/certificates"
-        KEYSTORE="test02Keystore.jks"
+        KEYSTORE="test03Keystore.jks"
         STOREPASS="admin123"
         KEYPASS="admin123"
         ALIAS_PREFIX="vishal_dev"
@@ -89,11 +89,11 @@ pipeline {
         //     }
         // }
 
-        stage('Remove Container Images') {
-            steps{
-                sh 'docker rmi -f $(docker images -a -q)'
-            }
-        }
+        // stage('Remove Container Images') {
+        //     steps{
+        //         sh 'docker rmi -f $(docker images -a -q)'
+        //     }
+        // }
 
 
         stage('Deploy to ecs') {
@@ -103,18 +103,6 @@ pipeline {
                     sh 'aws ecs update-service --cluster ${cluster} --service ${service} --force-new-deployment'
                 }
             }
-        }
-    }
-
-    post {
-        // Clean after build
-        always {
-            cleanWs(cleanWhenNotBuilt: false,
-                    deleteDirs: true,
-                    disableDeferredWipeout: true,
-                    notFailBuild: true,
-                    patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
-                               [pattern: '.propsfile', type: 'EXCLUDE']])
         }
     }
 }    
