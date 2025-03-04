@@ -15,7 +15,7 @@ pipeline {
         appRegistry = "296062569588.dkr.ecr.us-east-1.amazonaws.com/moveinapp"
         moveinRegistry = "https://296062569588.dkr.ecr.us-east-1.amazonaws.com"
         cluster = "moveinapp"
-        service = "moveinappsvc3"
+        service = "moveinappsvc"
     }
 
     stages {
