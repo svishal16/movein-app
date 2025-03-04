@@ -4,7 +4,7 @@ pipeline {
     environment {
         KEYSTORE_DIR="./cert_mgmt/keystores"
         CERT_DIR="./cert_mgmt/certificates"
-        KEYSTORE="test04Keystore.jks"
+        KEYSTORE="test05Keystore.jks"
         STOREPASS="admin123"
         KEYPASS="admin123"
         ALIAS_PREFIX="vishal_dev"
@@ -73,21 +73,21 @@ pipeline {
             }
         }
 
-        stage('Commit Code Changes') {
-            steps {
-                script {
-                    echo "Committing changes to GitHub repository..."
-                    sh '''
-                        # Make sure any code changes are committed, especially for keystore updates
-                        git config user.email "shrivastavavishal640@gmail.com"
-                        git config user.name "svishal16"
-                        git add $KEYSTORE_DIR/$KEYSTORE
-                        git commit -m "Updated JKS with renewed certificate"
-                        git push origin main
-                    '''
-                }
-            }
-        }
+        // stage('Commit Code Changes') {
+        //     steps {
+        //         script {
+        //             echo "Committing changes to GitHub repository..."
+        //             sh '''
+        //                 # Make sure any code changes are committed, especially for keystore updates
+        //                 git config user.email "shrivastavavishal640@gmail.com"
+        //                 git config user.name "svishal16"
+        //                 git add $KEYSTORE_DIR/$KEYSTORE
+        //                 git commit -m "Updated JKS with renewed certificate"
+        //                 git push origin main
+        //             '''
+        //         }
+        //     }
+        // }
 
         stage('Remove Container Images') {
             steps{
