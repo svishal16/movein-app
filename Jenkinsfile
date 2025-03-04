@@ -4,7 +4,7 @@ pipeline {
     environment {
         KEYSTORE_DIR="./cert_mgmt/keystores"
         CERT_DIR="./cert_mgmt/certificates"
-        KEYSTORE="test03Keystore.jks"
+        KEYSTORE="test01Keystore.jks"
         STOREPASS="admin123"
         KEYPASS="admin123"
         ALIAS_PREFIX="vishal_dev"
@@ -13,9 +13,9 @@ pipeline {
 
         registryCredential = 'ecr:us-east-1:awscreds'
         appRegistry = "296062569588.dkr.ecr.us-east-1.amazonaws.com/moveinapp"
-        vprofileRegistry = "https://296062569588.dkr.ecr.us-east-1.amazonaws.com"
+        moveinRegistry = "https://296062569588.dkr.ecr.us-east-1.amazonaws.com"
         cluster = "moveinapp"
-        service = "moveinappsvc"
+        service = "moveinappsvc3"
     }
 
     stages {
@@ -55,7 +55,7 @@ pipeline {
             steps {
                 script {
                     echo "Building new Docker image with updated JKS..."
-                        dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", ".")
+                    dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", ".")
                 }
             }
     
@@ -65,7 +65,7 @@ pipeline {
             steps{
                 script {
                     echo "Logging into AWS ECR and Pushing new Docker image..."
-                    docker.withRegistry( vprofileRegistry, registryCredential ) {
+                    docker.withRegistry( moveinRegistry, registryCredential ) {
                         dockerImage.push("$BUILD_NUMBER")
                         dockerImage.push('latest')
                     }
