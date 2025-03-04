@@ -55,9 +55,7 @@ pipeline {
             steps {
                 script {
                     echo "Building new Docker image with updated JKS..."
-                    docker.withRegistry( vprofileRegistry, registryCredential ) {
                         dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", "./Dockerfile")
-                    }
                 }
             }
     
@@ -101,7 +99,7 @@ pipeline {
         stage('Deploy to ecs') {
             steps {
                 echo "Deploying to AWS ECS..."
-                withAWS(credentials: 'awscreds', region: 'eu-north-1') {
+                withAWS(credentials: 'awscreds', region: 'us-east-1') {
                     sh 'aws ecs update-service --cluster ${cluster} --service ${service} --force-new-deployment'
                 }
             }
