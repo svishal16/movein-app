@@ -4,7 +4,7 @@ pipeline {
     environment {
         KEYSTORE_DIR="./cert_mgmt/keystores"
         CERT_DIR="./cert_mgmt/certificates"
-        KEYSTORE="test05Keystore.jks"
+        KEYSTORE="test06Keystore.jks"
         STOREPASS="admin123"
         KEYPASS="admin123"
         ALIAS_PREFIX="vishal_dev"
@@ -15,7 +15,7 @@ pipeline {
         appRegistry = "296062569588.dkr.ecr.us-east-1.amazonaws.com/moveinapp"
         vprofileRegistry = "https://296062569588.dkr.ecr.us-east-1.amazonaws.com"
         cluster = "moveinapp"
-        service = "moveinappsvc"
+        service = "moveinappsvc2"
     }
 
     stages {
